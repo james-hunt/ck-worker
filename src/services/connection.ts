@@ -35,14 +35,14 @@ export async function closeConnections(this: SessionInstance, reason: string) {
   this.externalWs = null;
 
   console.log('Client disconnected, triggering caption save.');
-  // await saveCaptionsToDatabase.call(this).catch((err) => {
-  //   // Catch errors from saveCaptionsToDatabase here to prevent
-  //   // waitUntil from potentially masking the error if not handled inside.
-  //   console.error(
-  //     'waitUntil caught an error during saveCaptionsToDatabase:',
-  //     err
-  //   );
-  // });
+  await saveCaptionsToDatabase.call(this).catch((err) => {
+    // Catch errors from saveCaptionsToDatabase here to prevent
+    // waitUntil from potentially masking the error if not handled inside.
+    console.error(
+      'waitUntil caught an error during saveCaptionsToDatabase:',
+      err
+    );
+  });
 
   this.onCleanup();
 }

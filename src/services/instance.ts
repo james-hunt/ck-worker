@@ -81,12 +81,12 @@ export class SessionInstance {
       return;
     }
 
-    // // Create or update DB row
-    // if (nextCaption.start === 0 || !this.captions.default.length) {
-    //   initSessionRecord.call(this, nextCaption);
-    // } else {
-    //   trackSessionDuration.call(this);
-    // }
+    // Create or update DB row
+    if (nextCaption.start === 0 || !this.captions.default.length) {
+      initSessionRecord.call(this, nextCaption);
+    } else {
+      trackSessionDuration.call(this);
+    }
 
     // Run translations
     await processTranslations.call(this);
