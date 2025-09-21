@@ -1,0 +1,22 @@
+// .vscode/settings.json
+{
+  // Set Prettier as the default formatter for all relevant file types
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // Automatically format the file on save
+  "editor.formatOnSave": true,
+
+  // Run ESLint's auto-fixer on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}
