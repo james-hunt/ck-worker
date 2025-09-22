@@ -22,6 +22,7 @@ export class SessionInstance {
   };
   closing: boolean = false; // Flag to indicate if the connection is closing
   onCleanup: () => void; // Callback to run on cleanup
+  lastCaptionAt: number = 0; // Timestamp of the last caption received
 
   // didConnect: boolean = false; // Flag to prevent multiple external connections
   // closing: boolean = false; // Flag to indicate if the connection is closing
@@ -71,6 +72,7 @@ export class SessionInstance {
     }
 
     this.sendMessageToClient(JSON.stringify(nextCaption));
+    this.lastCaptionAt = Date.now();
 
     // Push to supabase channel
     publishMessage.call(this);

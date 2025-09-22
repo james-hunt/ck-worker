@@ -54,12 +54,23 @@ server.on('upgrade', async function upgrade(request, socket, head) {
     return;
   }
 
+  const currentSession = sessions.get(params.accountId);
+
   // Block concurrent session
-  if (sessions.has(params.accountId)) {
-    console.log('Block concurrent', params.accountId);
-    socket.write('HTTP/1.1 409 Conflict\r\n\r\n');
-    socket.destroy();
-    return;
+  if (currentSession) {
+    // Check last caption time
+    // If over 30s ago, assume stale and replace
+    if (Date.now() - currentSession.lastCaptionAt < 30 * 1000) {
+      console.log('Block concurrent', params.accountId);
+      socket.write('HTTP/1.1 409 Conflict\r\n\r\n');
+      socket.destroy();
+      return;
+    } else {
+      currentSession.cleanupConnections(
+        'Stale session - new connection established'
+      );
+      sessions.delete(params.accountId);
+    }
   }
 
   const token = await validateToken(
