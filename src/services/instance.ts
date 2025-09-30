@@ -14,7 +14,7 @@ import { WebSocket } from 'ws';
 
 export class SessionInstance {
   createdAt: number = Date.now();
-  clientWs: WebSocket | null; // WebSocket connection to the browser
+  clientWs: WebSocket | null = null; // WebSocket connection to the browser
   externalWs: WebSocket | null = null; // WebSocket connection to the 3rd party service
   sessionId: string; // Unique session ID for the connection
   accountId: string; // Unique account ID for the connection
