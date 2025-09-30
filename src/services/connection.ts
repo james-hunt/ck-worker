@@ -1,4 +1,3 @@
-import { wsIsOpen } from '../lib.js';
 import { saveCaptionsToDatabase } from './db.js';
 import { SessionInstance } from './instance.js';
 
@@ -8,41 +7,38 @@ export async function closeConnections(this: SessionInstance, reason: string) {
   }
 
   this.closing = true;
-  console.log(`Cleaning up connections due to: ${reason}`);
 
-  // Prevent trying to close already closed sockets
-  if (wsIsOpen(this.clientWs)) {
-    try {
-      console.log('Closing client WS...');
-      this.clientWs.close(1000, `DO closing: ${reason}`);
-    } catch (e) {
-      console.error('Error closing client WS:', e);
-    }
+  try {
+    this.onCleanup();
+  } catch (e) {
+    this.log('Error during cleanup:', e);
   }
 
-  // WS should be destroyed when closed
-  // this.clientWs = null;
+  const now = Date.now();
+  const duration = (now - this.createdAt) / 1000;
+  this.log(`Cleaning up connections: ${reason}`);
+  this.log(`Session duration: ${Math.floor(duration)}s`);
 
-  if (wsIsOpen(this.externalWs)) {
-    try {
-      console.log('Closing external WS...');
-      this.externalWs?.close(1000, `DO closing: ${reason}`);
-    } catch (e) {
-      console.error('Error closing external WS:', e);
-    }
+  try {
+    this.clientWs?.close(1000, `DO closing: ${reason}`);
+  } catch (e) {
+    this.log('Error closing client WS:', e);
   }
 
-  this.externalWs = null;
+  try {
+    this.externalWs?.close(1000, `DO closing: ${reason}`);
+  } catch (e) {
+    this.log('Error closing external WS:', e);
+  }
 
-  console.log('Client disconnected, triggering caption save.');
-  await saveCaptionsToDatabase.call(this).catch((err) => {
-    // Catch errors from saveCaptionsToDatabase here to prevent
-    // waitUntil from potentially masking the error if not handled inside.
-    console.error(
-      'waitUntil caught an error during saveCaptionsToDatabase:',
-      err
-    );
-  });
-
-  this.onCleanup();
+  await saveCaptionsToDatabase
+    .call(this)
+    .then(() => {
+      this.log('Caption save complete.');
+    })
+    .catch((err) => {
+      // Catch errors from saveCaptionsToDatabase here to prevent
+      // waitUntil from potentially masking the error if not handled inside.
+      this.log('waitUntil caught an error during saveCaptionsToDatabase:', err);
+    });
 }

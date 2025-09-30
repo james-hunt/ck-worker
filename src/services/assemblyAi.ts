@@ -21,14 +21,15 @@ interface AssemblyAiResponse {
 }
 
 export async function registerAssemblyConnection(
-  this: SessionInstance,
-  attempt: number = 0
+  this: SessionInstance
 ): Promise<void> {
   // Externally checks if connection is already established
   if (!!wsIsOpen(this.externalWs)) {
     console.warn('External WebSocket already open, skipping connection setup.');
     return;
   }
+
+  this.log('Connect to AssemblyAI');
 
   try {
     const params = new URLSearchParams({
@@ -40,6 +41,10 @@ export async function registerAssemblyConnection(
       max_turn_silence: '800',
       token: process.env.ASSEMBLYAI_API_KEY!,
     });
+
+    if (this.options.keywords?.length) {
+      params.append('keywords', JSON.stringify(this.options.keywords));
+    }
 
     const ws = new WebSocket(
       `wss://streaming.assemblyai.com/v3/ws?${params.toString()}`
@@ -62,17 +67,8 @@ export async function registerAssemblyConnection(
 
     ws.addEventListener('message', (event) => {
       if (typeof event.data !== 'string') {
-        console.warn('Received non-string message from 3rd party:', event.data);
+        this.log('Received non-string message from 3rd party:', event.data);
         return;
-      }
-
-      if (wsIsOpen(this.clientWs)) {
-        console.warn(
-          'Client WS not open, cannot forward message from 3rd party.'
-        );
-        // Allow for reconnection
-        // this.cleanupConnections('Client WS not open');
-        // return;
       }
 
       const caption = formatResponse.call(this, event.data);
@@ -81,14 +77,19 @@ export async function registerAssemblyConnection(
       }
 
       this.processCaptions(caption).catch((error) => {
-        console.log('Error processing AssemblyAI captions:', error);
+        this.log('Error processing AssemblyAI captions:', error);
       });
     });
 
     ws.addEventListener('close', (event) => {
-      console.log('AssemblyAI closed:', event.code, event.reason);
+      if (event.code !== 1000) {
+        this.log('AssemblyAI close error:', event.code, event.reason);
+      }
 
       if (!this.closing) {
+        this.log('AssemblyAI closed unexpectedly, not during cleanup.');
+
+        // Fire close cleanup
         this.cleanupConnections(
           `AssemblyAI closed: ${event.code} ${event.reason}`
         );
@@ -97,18 +98,17 @@ export async function registerAssemblyConnection(
 
     ws.addEventListener('error', (error) => {
       // Hard Stop or reconnect?
-      console.error('AssemblyAI error:', error);
+      this.log('AssemblyAI error:', error);
       if (!this.closing) {
-        this.cleanupConnections('AssemblyAI error');
+        this.cleanupConnections(`AssemblyAI error: ${error.message}`);
       }
     });
 
     this.externalWs = ws;
     return;
   } catch (error) {
-    console.error('Failed to establish connection to 3rd party:', error);
-
-    // Hard Stop
+    this.log('Failed to establish connection to 3rd party:', error);
+    throw error;
   }
 }
 

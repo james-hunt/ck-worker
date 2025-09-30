@@ -37,7 +37,6 @@ server.on('upgrade', async function upgrade(request, socket, head) {
 
   const searchParams = new URLSearchParams(query);
   const params = parseUrlParams(searchParams);
-  console.log('Params', params);
 
   const hasError = await validateSchema(validationSchema, params)
     .then(() => false)
@@ -52,25 +51,6 @@ server.on('upgrade', async function upgrade(request, socket, head) {
     socket.write('HTTP/1.1 422 Unprocessable Content\r\n\r\n');
     socket.destroy();
     return;
-  }
-
-  const currentSession = sessions.get(params.accountId);
-
-  // Block concurrent session
-  if (currentSession) {
-    // Check last caption time
-    // If over 30s ago, assume stale and replace
-    if (Date.now() - currentSession.lastCaptionAt < 30 * 1000) {
-      console.log('Block concurrent', params.accountId);
-      socket.write('HTTP/1.1 409 Conflict\r\n\r\n');
-      socket.destroy();
-      return;
-    } else {
-      currentSession.cleanupConnections(
-        'Stale session - new connection established'
-      );
-      sessions.delete(params.accountId);
-    }
   }
 
   const token = await validateToken(
@@ -101,41 +81,68 @@ server.on('upgrade', async function upgrade(request, socket, head) {
     return;
   }
 
-  wss.handleUpgrade(request, socket, head, function done(ws) {
-    wss.emit('connection', ws, request);
-  });
-});
+  const currentSession = sessions.get(params.accountId);
 
-// 5. Handle new WebSocket connections with explicit types
-wss.on('connection', async (ws: WebSocket, request: IncomingMessage) => {
-  // Already validated in upgrade handler
+  if (currentSession) {
+    const hasClient = !!currentSession.clientWs;
 
-  const [_path, query] = (request.url || '').split('?');
-  const searchParams = new URLSearchParams(query);
-  const params = parseUrlParams(searchParams);
+    if (hasClient) {
+      console.log('Block concurrent', params.accountId);
+      socket.write('HTTP/1.1 409 Conflict\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    console.log(
+      `${currentSession.accountId}|${currentSession.sessionId}`,
+      'Reconnecting existing session'
+    );
+
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request, currentSession);
+    });
+    return;
+  }
+
   const sessionId = uuid();
 
   console.log(
-    'New WebSocket connection established',
-    params.accountId,
-    sessionId
+    `${params.accountId}|${sessionId}`,
+    'New WebSocket connection established'
   );
 
   function onCleanup() {
-    console.log('Connection closed, cleaning up session', params.accountId);
     sessions.delete(params.accountId);
   }
 
   const session = new SessionInstance(
-    ws,
     params.accountId,
     sessionId,
     params,
     onCleanup
   );
 
-  sessions.set(params.accountId, session);
+  await session.init().catch((e) => {
+    session.terminate();
+    console.log('Error initializing session:', e);
+    socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
+    socket.destroy();
+    return;
+  });
+
+  wss.handleUpgrade(request, socket, head, function done(ws) {
+    wss.emit('connection', ws, request, session);
+  });
 });
+
+// 5. Handle new WebSocket connections with explicit types
+wss.on(
+  'connection',
+  async (ws: WebSocket, request: IncomingMessage, session: SessionInstance) => {
+    session.connectClient(ws);
+    sessions.set(session.accountId, session);
+  }
+);
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

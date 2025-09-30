@@ -1,7 +1,7 @@
 import { InputLanguage, CaptionItem } from '../types.js';
 import { SessionInstance } from './instance.js';
 import { WebSocket } from 'ws';
-import {wsIsOpen} from '../lib.js'
+import { wsIsOpen } from '../lib.js';
 
 interface DeepgramWords {
   word: string;
@@ -62,13 +62,9 @@ export async function registerDeepgramConnection(this: SessionInstance) {
     return;
   }
 
+  this.log('Connect to Deepgram');
+
   try {
-    if (!this.options) {
-      throw new Error('No options provided');
-    }
-
-    // If English, should we use nova-3-general?
-
     const config: DeepgramConfig = {
       model: 'nova-2-general',
       language: this.options.language,
@@ -96,42 +92,33 @@ export async function registerDeepgramConnection(this: SessionInstance) {
         const keepAliveMsg = JSON.stringify({ type: 'KeepAlive' });
         this.externalWs?.send(keepAliveMsg);
       }
-    }, DEEPGRAM_KEEP_ALIVE)
+    }, DEEPGRAM_KEEP_ALIVE);
 
     this.externalWs.addEventListener('open', () => {
       // this.didConnect = true;
     });
 
     this.externalWs.addEventListener('message', (event) => {
-      if(typeof event.data !== 'string'){
+      if (typeof event.data !== 'string') {
         console.warn('Received non-string message from 3rd party:', event.data);
         return;
       }
 
-      if(!wsIsOpen(this.clientWs)){
-        console.warn(
-          'Client WS not open, cannot forward message from 3rd party.'
-        );
-        // Allow for reconnection
-        // this.cleanupConnections('Client WS not open');
-        // return;
-      }
-
-      const caption = formatResponse.call(this,event.data);
-      if(!caption){
+      const caption = formatResponse.call(this, event.data);
+      if (!caption) {
         return;
       }
 
       this.processCaptions(caption).catch((error) => {
-        console.log('Error processing captions:', error);
+        this.log('Error processing Deepgram captions:', error);
       });
     });
 
     this.externalWs.addEventListener('close', (event) => {
-      console.log('3rd party WebSocket closed:', event.code, event.reason);
+      this.log('Deepgram WebSocket closed:', event.code, event.reason);
       interval && clearInterval(interval);
 
-      if(!this.closing){
+      if (!this.closing) {
         this.cleanupConnections(
           `External connection closed: ${event.code} ${event.reason}`
         );
@@ -139,20 +126,13 @@ export async function registerDeepgramConnection(this: SessionInstance) {
     });
 
     this.externalWs.addEventListener('error', (error) => {
-      console.error('3rd party WebSocket error:', error);
-      if(!this.closing){
+      this.log('Deepgram party WebSocket error:', error);
+      if (!this.closing) {
         this.cleanupConnections('External connection error');
       }
     });
   } catch (error) {
-    console.error('Failed to establish connection to 3rd party:', error);
-    // Close client connection if external connection fails immediately
-    if (wsIsOpen(this.clientWs)) {
-      this.clientWs?.close(
-        1011,
-        'Internal error: failed to connect to upstream service'
-      );
-    }
+    this.log('Failed to establish connection to 3rd party:', error);
     this.cleanupConnections('Failed to init external connection');
   }
 
@@ -175,7 +155,7 @@ function formatResponse(
   this: SessionInstance,
   message: string
 ): CaptionItem | void {
-  try{
+  try {
     const data = JSON.parse(message) as DeepgramResponse;
     const alternatives = data?.channel?.alternatives;
 
@@ -197,8 +177,8 @@ function formatResponse(
       isComplete: data.is_final,
     };
 
-    return nextCaption
-  }catch(e){
+    return nextCaption;
+  } catch (e) {
     console.error('Error parsing response data:', e);
   }
 }

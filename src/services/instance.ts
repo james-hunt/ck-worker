@@ -1,3 +1,4 @@
+import { wsIsOpen } from '../lib.js';
 import { CaptionItem, type CaptionOptions, type Captions } from '../types.js';
 import { registerAssemblyConnection } from './assemblyAi.js';
 import { registerBrowserClient } from './browser.js';
@@ -12,51 +13,49 @@ import { WebSocket } from 'ws';
 // Need to keep current webhooks in a map somwhere?
 
 export class SessionInstance {
-  clientWs: WebSocket; // WebSocket connection to the browser
+  createdAt: number = Date.now();
+  clientWs: WebSocket | null; // WebSocket connection to the browser
   externalWs: WebSocket | null = null; // WebSocket connection to the 3rd party service
   sessionId: string; // Unique session ID for the connection
   accountId: string; // Unique account ID for the connection
   options: CaptionOptions; // Options for captions
-  captions: Captions = {
-    default: [],
-  };
   closing: boolean = false; // Flag to indicate if the connection is closing
   onCleanup: () => void; // Callback to run on cleanup
   lastCaptionAt: number = 0; // Timestamp of the last caption received
-
-  // didConnect: boolean = false; // Flag to prevent multiple external connections
-  // closing: boolean = false; // Flag to indicate if the connection is closing
-  // cleanupComplete = false; // Flag to indicate if the connection has been closed
-  // lastMessage: null | number = null;
-  // offset: number = 0; // Offset for the session start time
+  captions: Captions = {
+    default: [],
+  };
 
   constructor(
-    clientWs: WebSocket,
+    // clientWs: WebSocket,
     accountId: string,
     sessionId: string,
     options: CaptionOptions,
     onCleanup: () => void
   ) {
-    this.clientWs = clientWs;
+    // this.clientWs = clientWs;
     this.sessionId = sessionId;
     this.accountId = accountId;
     this.options = options;
     this.onCleanup = onCleanup;
-
-    this.init().catch((e) => {
-      console.error('Failed to init session', e);
-      this.cleanupConnections('Failed to init session');
-    });
   }
 
   async init() {
-    registerBrowserClient.call(this);
-
     if (this.options?.language.startsWith('en')) {
       await registerAssemblyConnection.call(this);
     } else {
       await registerDeepgramConnection.call(this);
     }
+  }
+
+  connectClient(ws: WebSocket) {
+    if (this.clientWs) {
+      console.log('Client already connected, cannot reconnect');
+      return;
+    }
+
+    this.clientWs = ws;
+    registerBrowserClient.call(this);
   }
 
   async processCaptions(caption: CaptionItem) {
@@ -91,7 +90,9 @@ export class SessionInstance {
     }
 
     // Run translations
-    await processTranslations.call(this);
+    await processTranslations.call(this).catch((e) => {
+      console.error('Failed to process translations', e);
+    });
   }
 
   sendMessageToClient(message: string) {
@@ -116,6 +117,16 @@ export class SessionInstance {
     } else {
       console.log('Send without being open first');
     }
+  }
+
+  log(...args: any[]) {
+    console.log(`${this.accountId}|${this.sessionId}`, ...args);
+  }
+
+  terminate() {
+    this.closing = true;
+    this.clientWs?.terminate();
+    this.externalWs?.terminate();
   }
 
   cleanupConnections(reason: string) {

@@ -25,23 +25,22 @@ export function registerBrowserClient(this: SessionInstance) {
   });
 
   this.clientWs.addEventListener('close', (event) => {
-    // if (event.code !== 1000) {
-    //   if (event.code === 1001) {
-    //     console.log('Durable object going away.', event.code, event.reason);
-    //   } else {
-    //     console.warn(`Client connection closed.`, event.code, event.reason);
-    //   }
-    //   console.log('Attempt reconnection');
+    if (event.code !== 1000) {
+      this.log('Client WebSocket closed with error:', event.code, event.reason);
+      this.clientWs = null;
 
-    //   this.ctx.storage.setAlarm(
-    //     Date.now() + 1000 * 60 // 1 minute
-    //   );
+      // Allow 15s for reconnect
+      setTimeout(() => {
+        if (!this.clientWs) {
+          this.cleanupConnections(
+            `Client disconnected (timeout): ${event.code} ${event.reason}`
+          );
+        }
+      }, 1000 * 15);
+      return;
+    }
 
-    //   // Set up alarm to save captions and close connections
-    //   return;
-    // }
-
-    console.log('Client WebSocket closed:', event.code, event.reason);
+    this.log('Client WebSocket closed:', event.code, event.reason);
 
     // Important: When the client disconnects, close the connection to the 3rd party.
     this.cleanupConnections(

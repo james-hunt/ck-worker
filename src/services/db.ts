@@ -142,7 +142,7 @@ export async function saveCaptionsToDatabase(this: SessionInstance) {
     })
     .eq('id', this.sessionId)
     .then((res) => {
-      console.log('Session complete', this.sessionId);
+      this.log('Session complete');
     });
 
   if (!translations?.length) {
@@ -175,8 +175,8 @@ export async function saveCaptionsToDatabase(this: SessionInstance) {
   await supabase
     .from('translations')
     .insert(payload)
-    .then((res) => {
-      console.log('Translations saved', this.sessionId);
+    .then(() => {
+      this.log('Translations saved');
     });
 
   // save captions to db
