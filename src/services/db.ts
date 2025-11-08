@@ -133,6 +133,7 @@ export async function saveCaptionsToDatabase(this: SessionInstance) {
     .upsert({
       id: this.sessionId,
       account_id: accountId,
+      profile_id: this.options.profileId || null,
       duration,
       language: language,
       translations: translations,

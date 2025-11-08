@@ -1,9 +1,19 @@
-import { AnyObjectSchema, array, boolean, InferType, object, string, ValidationError } from 'yup';
 import {
-  inputLanguages,
-  outputLanguages,
-} from './languages.js';
-import type { CaptionOptions, Captions, OutputLanguage, InputLanguage } from './types.js';
+  AnyObjectSchema,
+  array,
+  boolean,
+  InferType,
+  object,
+  string,
+  ValidationError,
+} from 'yup';
+import { inputLanguages, outputLanguages } from './languages.js';
+import type {
+  CaptionOptions,
+  Captions,
+  OutputLanguage,
+  InputLanguage,
+} from './types.js';
 import { WebSocket } from 'ws';
 
 const inputLanguagesKeys = Object.keys(inputLanguages);
@@ -14,6 +24,7 @@ export function parseUrlParams(params: URLSearchParams): CaptionOptions {
     language: params.get('language') as InputLanguage,
     translations: (params.getAll('t9n') as OutputLanguage[]) || [],
     accountId: params.get('accountId') as string,
+    profileId: (params.get('profileId') as string) || undefined,
     keywords: (params.getAll('kw') as string[]) || [],
     blocked: (params.getAll('bk') as string[]) || [],
     interimResults: JSON.parse(params.get('interimResults') || 'false')
@@ -29,9 +40,9 @@ export function parseUrlParams(params: URLSearchParams): CaptionOptions {
 export function getInitialCaptions(options: CaptionOptions): Captions {
   const captions: Captions = {
     default: [],
-  }
+  };
 
-  for(const lang of options.translations) {
+  for (const lang of options.translations) {
     captions[lang] = [];
   }
 
@@ -39,11 +50,12 @@ export function getInitialCaptions(options: CaptionOptions): Captions {
 }
 
 export const validationSchema = object({
+  accountId: string().uuid().required(),
+  profileId: string().uuid(),
   language: string().oneOf(inputLanguagesKeys).required(),
   translations: array()
     .of(string().oneOf(outputLanguageKeys).required())
     .required(),
-  accountId: string().uuid().required(),
   keywords: array().of(string()).required(),
   blocked: array().of(string()).required(),
   interimResults: boolean().required(),
@@ -51,10 +63,8 @@ export const validationSchema = object({
 });
 
 export const wsIsOpen = (ws: WebSocket | null): boolean => {
-  return !!ws &&
-    ws.readyState !== WebSocket.OPEN
-}
-
+  return !!ws && ws.readyState !== WebSocket.OPEN;
+};
 
 export async function validateSchema<T extends AnyObjectSchema>(
   validationSchema: T,
@@ -111,4 +121,12 @@ export async function validateSchema<T extends AnyObjectSchema>(
 
       throw errors;
     });
+}
+
+export function getSessionKey(params: CaptionOptions): string {
+  if (params.profileId) {
+    return [params.accountId, params.profileId].join(':');
+  }
+
+  return params.accountId;
 }

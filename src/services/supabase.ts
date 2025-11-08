@@ -1,12 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { SessionInstance } from './instance.js';
+import { getSessionKey } from '../lib.js';
 
-export const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!, {
+export const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-});
+  }
+);
 
 export async function publishMessage(this: SessionInstance) {
   const captions = this.captions.default.slice(-8);
@@ -21,7 +26,8 @@ export async function publishMessage(this: SessionInstance) {
     return;
   }
 
-  const channel = supabase.channel(this.options.accountId);
+  const channelId = getSessionKey(this.options);
+  const channel = supabase.channel(channelId);
 
   await channel.send({
     type: 'broadcast',

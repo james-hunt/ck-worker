@@ -1,10 +1,11 @@
 import type { InputLanguage, OutputLanguage } from './languages.js';
-export type {InputLanguage, OutputLanguage};
+export type { InputLanguage, OutputLanguage };
 
 export interface CaptionOptions {
   language: InputLanguage;
   translations: OutputLanguage[];
   accountId: string;
+  profileId?: string;
   keywords: string[];
   blocked: string[];
   interimResults: boolean;

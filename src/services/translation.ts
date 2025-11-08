@@ -8,6 +8,7 @@ import {
 } from '../types.js';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { supabase } from './supabase.js';
+import { getSessionKey } from '../lib.js';
 
 const getSystemPrompt = (input: InputLanguage, output: OutputLanguage) => {
   const inputLabel = inputLanguages[input];
@@ -72,7 +73,9 @@ export async function processSingleTranslation(
 
   this.captions[output].push(translated);
 
-  const channel = supabase.channel(this.options.accountId);
+  const channelId = getSessionKey(this.options);
+  const channel = supabase.channel(channelId);
+
   await channel.send({
     type: 'broadcast',
     event: `onTranscription:${output}`,

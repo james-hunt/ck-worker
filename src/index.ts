@@ -2,7 +2,13 @@
 import 'dotenv/config';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import { parseUrlParams, validationSchema, validateSchema } from './lib.js';
+import {
+  parseUrlParams,
+  validationSchema,
+  validateSchema,
+  wsIsOpen,
+  getSessionKey,
+} from './lib.js';
 import { v4 as uuid } from 'uuid';
 import { SessionInstance } from './services/instance.js';
 import { confirmAccountAccess, validateToken } from './services/auth.js';
@@ -81,10 +87,13 @@ server.on('upgrade', async function upgrade(request, socket, head) {
     return;
   }
 
-  const currentSession = sessions.get(params.accountId);
+  const sessionKey = getSessionKey(params);
+
+  const currentSession = sessions.get(sessionKey);
 
   if (currentSession) {
-    const hasClient = !!currentSession.clientWs;
+    // Should I disconnect the existing session instead?
+    const hasClient = !!wsIsOpen(currentSession.clientWs);
 
     if (hasClient) {
       console.log('Block concurrent', params.accountId);
@@ -112,7 +121,7 @@ server.on('upgrade', async function upgrade(request, socket, head) {
   );
 
   function onCleanup() {
-    sessions.delete(params.accountId);
+    sessions.delete(sessionKey);
   }
 
   const session = new SessionInstance(
@@ -140,7 +149,8 @@ wss.on(
   'connection',
   async (ws: WebSocket, request: IncomingMessage, session: SessionInstance) => {
     session.connectClient(ws);
-    sessions.set(session.accountId, session);
+    const sessionKey = getSessionKey(session.options);
+    sessions.set(sessionKey, session);
   }
 );
 
