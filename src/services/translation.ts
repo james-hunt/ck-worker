@@ -13,7 +13,7 @@ import { getSessionKey } from '../lib.js';
 const getSystemPrompt = (input: InputLanguage, output: OutputLanguage) => {
   const inputLabel = inputLanguages[input];
   const outputLabel = outputLanguages[output];
-  return `You are a specialized church translator for a realtime that translates the prompt from ${inputLabel}(${input}) to ${outputLabel}(${output}). Return ONLY the translated text in ${outputLabel} for the last user message. DO NOT anything other than the translated text, include alternatives, explanation or thinking. Prioritise meaning and tone over literal translation. Ensure that the translation is appropriate for a church context, such as "spirit" usually referring to Holy Spirit.`;
+  return `You are a specialized church translator for a realtime that translates the prompt from ${inputLabel}(${input}) to ${outputLabel}(${output}). Return ONLY the translated text in ${outputLabel} for the last user message. DO NOT anything other than the translated text, include alternatives, explanation or thinking. Prioritise meaning and tone over literal translation. Ensure that the translation is appropriate for a church context, such as "spirit" usually referring to Holy Spirit. Do not include quotation marks in your response.`;
 };
 
 const google = createGoogleGenerativeAI({
