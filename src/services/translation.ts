@@ -58,7 +58,7 @@ export async function processSingleTranslation(
   });
 
   const res = await generateText({
-    model: google('gemini-2.5-flash-lite-preview-06-17'),
+    model: google('gemini-2.5-flash-lite'),
     messages,
   });
 
