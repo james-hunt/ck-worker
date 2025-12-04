@@ -9,12 +9,22 @@ import {
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { supabase } from './supabase.js';
 import { getSessionKey } from '../lib.js';
+import { rules } from '../rules/rules.js';
 
 const getSystemPrompt = (input: InputLanguage, output: OutputLanguage) => {
   const inputLabel = inputLanguages[input];
   const outputLabel = outputLanguages[output];
   return `You are a specialized church translator for a realtime that translates the prompt from ${inputLabel}(${input}) to ${outputLabel}(${output}). Return ONLY the translated text in ${outputLabel} for the last user message. DO NOT anything other than the translated text, include alternatives, explanation or thinking. Prioritise meaning and tone over literal translation. Ensure that the translation is appropriate for a church context, such as "spirit" usually referring to Holy Spirit. Do not include quotation marks in your response.`;
 };
+
+function getRules(accountId: string, input: InputLanguage) {
+  try {
+    const rule = rules[accountId as keyof typeof rules];
+    return rule?.input || null;
+  } catch (e) {
+    return null;
+  }
+}
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
@@ -27,6 +37,10 @@ export async function processSingleTranslation(
   output: OutputLanguage
 ) {
   const system = getSystemPrompt(input, output);
+  const rules = getRules(this.options.accountId, input);
+  const combinedSystem = rules
+    ? `${system}\n\nAdditional Context: ${rules}`
+    : system;
   const inputCaptions = captions.slice(-4, -1);
   const lastCaption = captions.slice(-1).pop();
   const outputCaptions = (this.captions[output] || []).slice(-6);
@@ -36,7 +50,9 @@ export async function processSingleTranslation(
     return;
   }
 
-  const messages: ModelMessage[] = [{ role: 'system', content: system }];
+  const messages: ModelMessage[] = [
+    { role: 'system', content: combinedSystem },
+  ];
 
   // Return previous messages with matches for context
   for (const caption of inputCaptions) {
