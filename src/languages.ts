@@ -61,7 +61,6 @@ export const commonLanguages = {
   sl: 'Slovenian',
   es: 'Spanish',
   'es-419': 'Spanish (Latin America)',
-  multi: 'Spanish & English (Bilingual)',
   sw: 'Swahili',
   sv: 'Swedish',
   tl: 'Tagalog (Filipino)',
