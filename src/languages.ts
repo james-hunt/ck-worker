@@ -51,7 +51,7 @@ export const commonLanguages = {
   mr: 'Marathi',
   mn: 'Mongolian',
   no: 'Norwegian',
-  fa: 'Persian',
+  fa: 'Persian (Farsi)',
   pl: 'Polish',
   pt: 'Portuguese',
   'pt-BR': 'Portuguese (Brazil)',

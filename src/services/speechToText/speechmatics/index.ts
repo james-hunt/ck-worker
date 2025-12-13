@@ -1,5 +1,5 @@
-import { SessionInstance } from '../instance.js';
-import { CaptionItem } from '../../types.js';
+import { SessionInstance } from '../../instance.js';
+import { CaptionItem } from '../../../types.js';
 
 import {
   ErrorType,
@@ -9,8 +9,9 @@ import {
   type AddTranscript,
 } from '@speechmatics/real-time-client';
 
-import { SpeechToText, SpeechToTextStatus } from './lib.js';
+import { SpeechToText, SpeechToTextStatus } from './../lib.js';
 import { createSpeechmaticsJWT } from '@speechmatics/auth';
+import { getLanguageCode, SpeechmaticsSentenceStream } from './lib.js';
 
 // ms to seconds with 2 decimal places
 function formatTime(ms: number): number {
@@ -32,33 +33,24 @@ export async function registerSpeechmaticsConnection(
     url: 'wss://us.rt.speechmatics.com/v2',
   });
 
-  // const realtime = client.streaming.transcriber({
-  //   sampleRate: 16000,
-  //   formatTurns: true,
-  //   encoding: 'pcm_s16le',
-  //   endOfTurnConfidenceThreshold: 0.3,
-  //   minEndOfTurnSilenceWhenConfident: 0,
-  //   maxTurnSilence: 800,
-  //   filterProfanity: true,
-  //   keyterms: this.options.keywords?.length ? this.options.keywords : [],
-  // });
+  const stream = new SpeechmaticsSentenceStream((event) => {
+    this.processCaptions(event).catch((error) => {
+      this.log('Error processing Speechmatics captions:', error);
+    });
+  });
 
   const onTurn = (data: AddPartialTranscript | AddTranscript) => {
-    const turn = data.results[0];
+    const { metadata } = data;
 
-    console.log('Speechmatics turn data:', turn);
-
-    const words = turn.alternatives || [];
-
-    const start = turn.start_time || 0;
-    const end = turn.end_time || start;
+    const start = metadata.start_time || 0;
+    const end = metadata.end_time || start;
     const duration = end - start || 0;
-    const isComplete = !!turn.is_eos;
+    const isComplete = data.message === 'AddTranscript';
 
     const nextCaption: CaptionItem = {
-      start: formatTime(start),
+      start,
       duration: formatTime(duration),
-      text: words.map((w) => w.content).join(' '),
+      text: metadata.transcript || '',
       t: Date.now(),
       requestId: this.sessionId,
       isComplete,
@@ -89,14 +81,14 @@ export async function registerSpeechmaticsConnection(
   };
 
   realtime.addEventListener('receiveMessage', ({ data }) => {
-    console.log('Speechmatics message data:', data);
+    // console.log('Speechmatics message data:', data);
     switch (data.message) {
-      // case 'AddTranscript':
-      // case 'AddPartialTranscript':
-      //   return onTurn(data as AddPartialTranscript | AddTranscript);
       case 'Error':
         onError(data as ErrorType);
         this.log('Speechmatics error message:', data);
+        return;
+      default:
+        stream.onMessage(data);
         return;
     }
   });
@@ -120,23 +112,35 @@ export async function registerSpeechmaticsConnection(
     ttl: 60 * 60 * 4, // seconds
   });
 
-  console.log('Starting Speechmatics realtime with JWT:', jwt);
-
-  await realtime.start(jwt, {
-    audio_format: {
-      type: 'raw',
-      encoding: 'pcm_s16le',
-      sample_rate: 16000,
-    },
-    transcription_config: {
-      language: 'en',
-      enable_partials: true,
-      max_delay: 0.8,
-      additional_vocab: this.options.keywords?.length
-        ? this.options.keywords?.map((k) => ({ content: k }))
-        : undefined,
-    },
-  });
+  await realtime
+    .start(jwt, {
+      audio_format: {
+        type: 'raw',
+        encoding: 'pcm_s16le',
+        sample_rate: 16000,
+      },
+      transcription_config: {
+        language: getLanguageCode(this.options.language),
+        operating_point: 'standard',
+        // enable_partials: true,
+        // max_delay_mode: 'flexible',
+        enable_entities: true,
+        max_delay: 1,
+        // conversation_config: {
+        //   end_of_utterance_silence_trigger: 1.2,
+        // },
+        transcript_filtering_config: {
+          remove_disfluencies: true,
+        },
+        additional_vocab: this.options.keywords?.length
+          ? this.options.keywords?.map((k) => ({ content: k }))
+          : undefined,
+      },
+    })
+    .catch((error) => {
+      this.log('Error connecting to Speechmatics:', error);
+      throw error;
+    });
 
   return {
     close: async () => {

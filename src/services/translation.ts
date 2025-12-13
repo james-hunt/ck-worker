@@ -7,6 +7,7 @@ import {
   type OutputLanguage,
 } from '../types.js';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createFireworks } from '@ai-sdk/fireworks';
 import { supabase } from './supabase.js';
 import { getSessionKey } from '../lib.js';
 import { rules } from '../rules/rules.js';
@@ -14,7 +15,23 @@ import { rules } from '../rules/rules.js';
 const getSystemPrompt = (input: InputLanguage, output: OutputLanguage) => {
   const inputLabel = inputLanguages[input];
   const outputLabel = outputLanguages[output];
-  return `You are a specialized church translator for a realtime that translates the prompt from ${inputLabel}(${input}) to ${outputLabel}(${output}). Return ONLY the translated text in ${outputLabel} for the last user message. DO NOT anything other than the translated text, include alternatives, explanation or thinking. Prioritise meaning and tone over literal translation. Ensure that the translation is appropriate for a church context, such as "spirit" usually referring to Holy Spirit. Do not include quotation marks in your response.`;
+  return `
+    You are a professional translator for live church sermons.
+
+    Translate the most recent message from ${inputLabel} (${input}) into ${outputLabel} (${output}).
+
+    Use natural spoken language appropriate for congregational listening. Translate key theological terms consistently throughout the session.
+
+    Translate naturally and conversationally, prioritising meaning, intent, and tone over literal wording.
+    Adapt idioms, figures of speech, and theological language into natural equivalents in the target language.
+    Preserve the speaker's intent and emphasis.
+
+    Use church-appropriate terminology.
+    For example, "spirit" typically refers to the Holy Spirit unless context clearly indicates otherwise.
+
+    Return ONLY the translated text in ${outputLabel}.
+    Do NOT include explanations, alternatives, commentary, or quotation marks.
+  `.trim();
 };
 
 function getRules(accountId: string, input: InputLanguage) {
@@ -29,6 +46,10 @@ function getRules(accountId: string, input: InputLanguage) {
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });
+
+// const fireworks = createFireworks({
+//   apiKey: process.env.FIREWORKS_API_KEY ?? '',
+// });
 
 export async function processSingleTranslation(
   this: SessionInstance,
@@ -75,6 +96,8 @@ export async function processSingleTranslation(
 
   const res = await generateText({
     model: google('gemini-2.5-flash-lite'),
+    // model: google('gemini-2.5-flash'),
+    // model: fireworks('accounts/fireworks/models/gpt-oss-20b'),
     messages,
   });
 

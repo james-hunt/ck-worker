@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/fireworks": "^1.0.30",
     "@ai-sdk/google": "^2.0.14",
     "@deepgram/sdk": "^3.1.2",
     "@speechmatics/auth": "^0.1.0",
