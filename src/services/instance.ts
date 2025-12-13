@@ -1,21 +1,17 @@
-import { wsIsOpen } from '../lib.js';
 import { CaptionItem, type CaptionOptions, type Captions } from '../types.js';
-import { registerAssemblyConnection } from './assemblyAi.js';
+// import { registerAssemblyConnection } from './assemblyAi.js';
 import { registerBrowserClient } from './browser.js';
 import { closeConnections } from './connection.js';
 import { initSessionRecord, trackSessionDuration } from './db.js';
-import { registerDeepgramConnection } from './deepgram.js';
 import { formatCaptions } from './format.js';
+import { SpeechToText, getClient } from './speechToText/index.js';
 import { publishMessage } from './supabase.js';
 import { processTranslations } from './translation.js';
 import { WebSocket } from 'ws';
 
-// Need to keep current webhooks in a map somwhere?
-
 export class SessionInstance {
   createdAt: number = Date.now();
   clientWs: WebSocket | null = null; // WebSocket connection to the browser
-  externalWs: WebSocket | null = null; // WebSocket connection to the 3rd party service
   sessionId: string; // Unique session ID for the connection
   accountId: string; // Unique account ID for the connection
   options: CaptionOptions; // Options for captions
@@ -25,6 +21,8 @@ export class SessionInstance {
   captions: Captions = {
     default: [],
   };
+
+  speechToText: SpeechToText | null = null; // SpeechToText instance
 
   constructor(
     // clientWs: WebSocket,
@@ -41,11 +39,7 @@ export class SessionInstance {
   }
 
   async init() {
-    if (this.options?.language.startsWith('en')) {
-      await registerAssemblyConnection.call(this);
-    } else {
-      await registerDeepgramConnection.call(this);
-    }
+    this.speechToText = await getClient.call(this);
   }
 
   connectClient(ws: WebSocket) {
@@ -111,12 +105,7 @@ export class SessionInstance {
       return;
     }
 
-    if (this.externalWs?.readyState === WebSocket.OPEN) {
-      // this.lastMessage = Date.now();
-      this.externalWs.send(message);
-    } else {
-      console.log('Send without being open first');
-    }
+    this.speechToText?.sendSpeech(message);
   }
 
   log(...args: any[]) {
@@ -126,7 +115,7 @@ export class SessionInstance {
   terminate() {
     this.closing = true;
     this.clientWs?.terminate();
-    this.externalWs?.terminate();
+    this.speechToText?.close();
   }
 
   cleanupConnections(reason: string) {

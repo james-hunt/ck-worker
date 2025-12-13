@@ -1,7 +1,7 @@
-import { InputLanguage, CaptionItem } from '../types.js';
-import { SessionInstance } from './instance.js';
+import { InputLanguage, CaptionItem } from '../../types.js';
+import { SessionInstance } from '../instance.js';
 import { WebSocket } from 'ws';
-import { wsIsOpen } from '../lib.js';
+import { wsIsOpen } from '../../lib.js';
 
 interface DeepgramWords {
   word: string;

@@ -18,14 +18,19 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.14",
     "@deepgram/sdk": "^3.1.2",
+    "@speechmatics/auth": "^0.1.0",
+    "@speechmatics/real-time-client": "^8.2.0",
     "@supabase/supabase-js": "^2.57.4",
+    "@upstash/realtime": "^1.0.0",
     "@upstash/redis": "^1.35.4",
     "ai": "^5.0.47",
+    "assemblyai": "^4.19.0",
     "dotenv": "^16.3.1",
     "jose": "^6.1.0",
     "uuid": "^13.0.0",
     "ws": "^8.16.0",
-    "yup": "^1.7.0"
+    "yup": "^1.7.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

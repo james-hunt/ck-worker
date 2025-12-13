@@ -26,7 +26,7 @@ export async function closeConnections(this: SessionInstance, reason: string) {
   }
 
   try {
-    this.externalWs?.close(1000, `DO closing: ${reason}`);
+    this.speechToText?.close();
   } catch (e) {
     this.log('Error closing external WS:', e);
   }

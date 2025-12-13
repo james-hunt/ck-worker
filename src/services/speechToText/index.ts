@@ -1,0 +1,95 @@
+import { InputLanguage } from '../../languages.js';
+import { SessionInstance } from '../instance.js';
+import { registerAssemblyConnection } from './assemblyAi.js';
+import { registerSpeechmaticsConnection } from './speechmatics.js';
+
+const clients = {
+  assemblyAi: registerAssemblyConnection,
+  speechmatics: registerSpeechmaticsConnection,
+};
+
+type ClientKey = keyof typeof clients;
+
+export const providerLanguageMap: Record<InputLanguage, ClientKey> = {
+  ar: 'speechmatics',
+  ba: 'speechmatics',
+  eu: 'speechmatics',
+  be: 'speechmatics',
+  bn: 'speechmatics',
+  bg: 'speechmatics',
+  // 'yue': 'speechmatics',
+  ca: 'speechmatics',
+  zh: 'speechmatics',
+  // 'zh-CN': 'speechmatics',
+  // 'zh-Hans': 'speechmatics',
+  'zh-TW': 'speechmatics',
+  // 'zh-Hant': 'speechmatics',
+  'zh-HK': 'speechmatics',
+  hr: 'speechmatics',
+  cs: 'speechmatics',
+  da: 'speechmatics',
+  nl: 'speechmatics',
+  en: 'assemblyAi',
+  'en-US': 'speechmatics',
+  'en-AU': 'assemblyAi',
+  'en-GB': 'assemblyAi',
+  'en-NZ': 'assemblyAi',
+  eo: 'speechmatics',
+  et: 'speechmatics',
+  fi: 'speechmatics',
+  fr: 'speechmatics',
+  'fr-CA': 'speechmatics',
+  gl: 'speechmatics',
+  de: 'speechmatics',
+  'de-CH': 'speechmatics',
+  el: 'speechmatics',
+  he: 'speechmatics',
+  hi: 'speechmatics',
+  hu: 'speechmatics',
+  id: 'speechmatics',
+  // 'ia': 'speechmatics',
+  ga: 'speechmatics',
+  it: 'speechmatics',
+  ja: 'speechmatics',
+  ko: 'speechmatics',
+  lv: 'speechmatics',
+  lt: 'speechmatics',
+  ms: 'speechmatics',
+  // 'en_ms': 'speechmatics',
+  mt: 'speechmatics',
+  // 'cmn': 'speechmatics',
+  // 'cmn_en': 'speechmatics',
+  // 'cmn_en_ms_ta': 'speechmatics',
+  mr: 'speechmatics',
+  mn: 'speechmatics',
+  no: 'speechmatics',
+  fa: 'speechmatics',
+  pl: 'speechmatics',
+  pt: 'speechmatics',
+  'pt-BR': 'speechmatics',
+  ro: 'speechmatics',
+  ru: 'speechmatics',
+  sk: 'speechmatics',
+  sl: 'speechmatics',
+  es: 'speechmatics',
+  'es-419': 'speechmatics',
+  multi: 'speechmatics',
+  sw: 'speechmatics',
+  sv: 'speechmatics',
+  tl: 'speechmatics',
+  ta: 'speechmatics',
+  // 'en_ta': 'speechmatics',
+  th: 'speechmatics',
+  tr: 'speechmatics',
+  uk: 'speechmatics',
+  ur: 'speechmatics',
+  ug: 'speechmatics',
+  vi: 'speechmatics',
+  cy: 'speechmatics',
+};
+
+export async function getClient(this: SessionInstance) {
+  const clientKey = providerLanguageMap[this.options.language];
+  const client = clients[clientKey];
+  return client.call(this);
+}

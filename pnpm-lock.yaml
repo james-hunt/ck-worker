@@ -10,19 +10,31 @@ importers:
     dependencies:
       '@ai-sdk/google':
         specifier: ^2.0.14
-        version: 2.0.14(zod@4.1.9)
+        version: 2.0.14(zod@4.1.13)
       '@deepgram/sdk':
         specifier: ^3.1.2
         version: 3.13.0
+      '@speechmatics/auth':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@speechmatics/real-time-client':
+        specifier: ^8.2.0
+        version: 8.2.0
       '@supabase/supabase-js':
         specifier: ^2.57.4
         version: 2.57.4
+      '@upstash/realtime':
+        specifier: ^1.0.0
+        version: 1.0.0(@upstash/redis@1.35.4)(zod@4.1.13)
       '@upstash/redis':
         specifier: ^1.35.4
         version: 1.35.4
       ai:
         specifier: ^5.0.47
-        version: 5.0.47(zod@4.1.9)
+        version: 5.0.47(zod@4.1.13)
+      assemblyai:
+        specifier: ^4.19.0
+        version: 4.19.0
       dotenv:
         specifier: ^16.3.1
         version: 16.6.1
@@ -38,6 +50,9 @@ importers:
       yup:
         specifier: ^1.7.0
         version: 1.7.0
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
     devDependencies:
       '@types/node':
         specifier: ^24.5.2
@@ -325,6 +340,12 @@ packages:
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
 
+  '@speechmatics/auth@0.1.0':
+    resolution: {integrity: sha512-vF1XOFlAtbNSWYsuJm9WDAZfZIOpwibgqu0sH/Qqkbyz2w/EQyoIhlKta8KRVZ74JeKyY08mnGQ17WDj6i6U4Q==}
+
+  '@speechmatics/real-time-client@8.2.0':
+    resolution: {integrity: sha512-VC988dRXXh4PAfRlq/kg7S9MSIWlCKQVhCGGZhuxMrdYYC6pDImHGR7/I3Gko3cm5KquNJCwV4AIoU192tfVgQ==}
+
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
 
@@ -427,6 +448,19 @@ packages:
     resolution: {integrity: sha512-zaz9u8EJ4GBmnehlrpoKvj/E3dNbuQ7q0ucyZImm3cLqJ8INTc970B1qEqDX/Rzq65r3TvVTN7kHWPBoyW7DWw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
+  '@upstash/realtime@1.0.0':
+    resolution: {integrity: sha512-PJNm+laOlPTkbVbm8vPge14en8OgiIZIazPUAhAXys0KS8mFIs6ri2/EaL3lhc7GEJIZ9+9kHHgw9gdV9R7oUg==}
+    peerDependencies:
+      '@upstash/redis': '>=1.35.4'
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   '@upstash/redis@1.35.4':
     resolution: {integrity: sha512-WE1ZnhFyBiIjTDW13GbO6JjkiMVVjw5VsvS8ENmvvJsze/caMQ5paxVD44+U68IUVmkXcbsLSoE+VIYsHtbQEw==}
 
@@ -455,6 +489,10 @@ packages:
 
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+
+  assemblyai@4.19.0:
+    resolution: {integrity: sha512-3yMTZoipmae16Xj3htLKtG/m7PMOt/enIn16u3leX9iF+GiTpzuj60aUqA3zq19lkoDauVlpWVy6PIYssWN1Nw==}
+    engines: {node: '>=18'}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -852,6 +890,9 @@ packages:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
 
+  typescript-event-target@1.1.1:
+    resolution: {integrity: sha512-dFSOFBKV6uwaloBCCUhxlD3Pr/P1a/tJdcmPrTXCHlEFD3faj0mztjcGn6VBAhQ0/Bdy8K3VWrrqwbt/ffsYsg==}
+
   typescript@5.9.2:
     resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
@@ -907,29 +948,29 @@ packages:
   yup@1.7.0:
     resolution: {integrity: sha512-VJce62dBd+JQvoc+fCVq+KZfPHr+hXaxCcVgotfwWvlR0Ja3ffYKaJBT8rptPOSKOGJDCUnW2C2JWpud7aRP6Q==}
 
-  zod@4.1.9:
-    resolution: {integrity: sha512-HI32jTq0AUAC125z30E8bQNz0RQ+9Uc+4J7V97gLYjZVKRjeydPgGt6dvQzFrav7MYOUGFqqOGiHpA/fdbd0cQ==}
+  zod@4.1.13:
+    resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
 snapshots:
 
-  '@ai-sdk/gateway@1.0.24(zod@4.1.9)':
+  '@ai-sdk/gateway@1.0.24(zod@4.1.13)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.9)
-      zod: 4.1.9
+      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.13)
+      zod: 4.1.13
 
-  '@ai-sdk/google@2.0.14(zod@4.1.9)':
+  '@ai-sdk/google@2.0.14(zod@4.1.13)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.9)
-      zod: 4.1.9
+      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.13)
+      zod: 4.1.13
 
-  '@ai-sdk/provider-utils@3.0.9(zod@4.1.9)':
+  '@ai-sdk/provider-utils@3.0.9(zod@4.1.13)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.6
-      zod: 4.1.9
+      zod: 4.1.13
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
@@ -1099,6 +1140,16 @@ snapshots:
 
   '@opentelemetry/api@1.9.0': {}
 
+  '@speechmatics/auth@0.1.0': {}
+
+  '@speechmatics/real-time-client@8.2.0':
+    dependencies:
+      typescript-event-target: 1.1.1
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@standard-schema/spec@1.0.0': {}
 
   '@supabase/auth-js@2.71.1':
@@ -1254,6 +1305,11 @@ snapshots:
       '@typescript-eslint/types': 8.44.0
       eslint-visitor-keys: 4.2.1
 
+  '@upstash/realtime@1.0.0(@upstash/redis@1.35.4)(zod@4.1.13)':
+    dependencies:
+      '@upstash/redis': 1.35.4
+      zod: 4.1.13
+
   '@upstash/redis@1.35.4':
     dependencies:
       uncrypto: 0.1.3
@@ -1264,13 +1320,13 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  ai@5.0.47(zod@4.1.9):
+  ai@5.0.47(zod@4.1.13):
     dependencies:
-      '@ai-sdk/gateway': 1.0.24(zod@4.1.9)
+      '@ai-sdk/gateway': 1.0.24(zod@4.1.13)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.9)
+      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.13)
       '@opentelemetry/api': 1.9.0
-      zod: 4.1.9
+      zod: 4.1.13
 
   ajv@6.12.6:
     dependencies:
@@ -1284,6 +1340,13 @@ snapshots:
       color-convert: 2.0.1
 
   argparse@2.0.1: {}
+
+  assemblyai@4.19.0:
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   balanced-match@1.0.2: {}
 
@@ -1665,6 +1728,8 @@ snapshots:
 
   type-fest@2.19.0: {}
 
+  typescript-event-target@1.1.1: {}
+
   typescript@5.9.2: {}
 
   uncrypto@0.1.3: {}
@@ -1703,4 +1768,4 @@ snapshots:
       toposort: 2.0.2
       type-fest: 2.19.0
 
-  zod@4.1.9: {}
+  zod@4.1.13: {}
