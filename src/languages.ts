@@ -90,6 +90,7 @@ export const outputOnlyLanguages = {
   af: 'Afrikaans',
   // ar: 'Arabic',
   am: 'Amharic',
+  bi: 'Bislama',
   // bn: 'Bengali',
   // cy: 'Welsh',
   // fa: 'Persian',
