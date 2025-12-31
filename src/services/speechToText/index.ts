@@ -4,6 +4,8 @@ import { registerAssemblyConnection } from './assemblyAi.js';
 import { registerDeepgramConnection } from './deepgram.js';
 import { registerSpeechmaticsConnection } from './speechmatics/index.js';
 
+export { SpeechToText } from './lib.js';
+
 const clients = {
   assemblyAi: registerAssemblyConnection,
   speechmatics: registerSpeechmaticsConnection,
